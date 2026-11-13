@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Deine Checkliste</title>
+<style>
+:root{--bg:#e3e7ec;--navy:#1f3566;--slate:#5f7096;--card:#f1f3f7;--gold:#d4ae3a;--goldbg:#faf3e4;--ok:#3f9a45;--okbg:#e2f2df;--rot:#b23b3b}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--navy);font-family:"Red Hat Display","Avenir Next","Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.4;padding-bottom:110px}
+.wrap{max-width:680px;margin:0 auto;padding:22px 16px}
+.kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.kopf img{width:58px;border-radius:12px;flex:none}
+h1{font-size:28px;line-height:1.15}
+.intro{margin-top:8px;color:var(--slate);font-size:15.5px}
+.termin b{white-space:nowrap}
+.termin{display:inline-block;margin-top:14px;background:#fff;border:2px solid var(--navy);border-radius:999px;padding:6px 14px;font-size:14.5px}
+h2{font-size:19px;margin:28px 0 10px;display:flex;align-items:center;gap:10px}
+h2 .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-size:14px;display:grid;place-items:center}
+.karte{background:#fff;border:1.5px solid #cfd6e2;border-radius:16px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
+.karte.fertig{border-color:var(--slate)}
+.karte b{display:block;font-size:16px}
+.karte small{display:block;color:var(--slate);font-size:13.5px;margin-top:2px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:7px;margin-top:10px}
+.opt{border:1.5px solid var(--slate);background:var(--card);color:var(--navy);border-radius:999px;padding:9px 4px;font:inherit;font-size:14px;text-align:center;line-height:1.2;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.opt.an{background:var(--navy);border-color:var(--navy);color:#fff}
+.opt.an.luecke{background:var(--gold);border-color:var(--gold)}
+input[type=text],textarea{width:100%;margin-top:10px;border:1.5px solid #cfd6e2;border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;color:var(--navy);background:#fff}
+textarea{min-height:90px;resize:vertical}
+.regel{background:var(--goldbg);border:1.5px solid var(--gold);border-radius:16px;padding:14px 16px;font-size:15px;margin-top:28px}
+.regel h3{font-size:17px;margin-bottom:6px}
+.regel ul{margin:8px 0 0 18px}
+.fuss{text-align:center;color:var(--slate);font-size:12.5px;margin-top:26px}
+.leiste{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #cfd6e2;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.leiste .in{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.leiste .stand{flex:1;font-size:13.5px;color:var(--slate)}
+.balken{height:6px;background:var(--card);border-radius:3px;margin-top:5px;overflow:hidden}
+.balken i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.senden{border:0;background:var(--navy);color:#fff;border-radius:999px;padding:12px 22px;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.senden:disabled{opacity:.6}
+.meldung{border-radius:16px;padding:14px 16px;margin-top:18px;font-size:15px;display:none}
+.meldung.an{display:block}
+.meldung.ok{background:var(--okbg);border:1.5px solid var(--ok)}
+.meldung.fehler{background:#f7e1e1;border:1.5px solid var(--rot)}
+.status{padding:60px 0;text-align:center;color:var(--slate)}
+</style></head><body>
+<div class="wrap" id="app"><div class="status">Lädt …</div></div>
+<div class="leiste" id="leiste" style="display:none"><div class="in"><div class="stand"><span id="stand"></span><div class="balken"><i id="balken"></i></div></div><button class="senden" id="senden">Absenden</button></div></div>
+<script>
+const API="";
+const ABSCHNITTE=[{"titel": "Haus, Auto, Haftung", "items": [{"key": "haftpflicht", "label": "Privathaftpflicht", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "hausrat", "label": "Hausrat", "hint": "inkl. Fahrrad / E-Bike", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "wohngebaeude", "label": "Wohngebäude", "hint": "nur wenn dir ein Haus gehört", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["kein", "Kein Eigentum", null]]}, {"key": "rechtsschutz", "label": "Rechtsschutz", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "kfz", "label": "KFZ", "hint": "Auto, Motorrad, Roller", "opts": [["hab", "Hab ich", "hat"], ["kein", "Kein Fahrzeug", null]]}, {"key": "haustier", "label": "Haustier-Versicherung", "hint": "Tierhalterhaftpflicht, Tier-Kranken- oder OP-Versicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["kein", "Kein Haustier", null]]}, {"key": "strom", "label": "Strom & Gas", "hint": "Wir schauen, ob dein Tarif günstiger geht", "opts": [["ja", "Gern mitprüfen", "hinweis"], ["nein", "Nein danke", null]]}]}, {"titel": "Gesundheit und Arbeitskraft", "items": [{"key": "krankenkasse", "label": "Bei welcher Krankenkasse bist du?", "typ": "text", "placeholder": "z. B. TK, AOK, Barmer"}, {"key": "bu", "label": "Berufsunfähigkeit / Grundfähigkeit", "hint": "bei Beamten: Dienstunfähigkeit", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "unfall", "label": "Unfallversicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "risikoleben", "label": "Risikolebensversicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "zusatz", "label": "Krankenzusatz", "hint": "z. B. Zahn, Krankenhaus, Heilpraktiker", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}]}, {"titel": "Vorsorge und Vermögen", "items": [{"key": "altvertraege", "label": "Alte Verträge zur Altersvorsorge, die wir noch nicht kennen", "hint": "Lebensversicherung, Riester, Rürup, Betriebsrente (bAV)", "opts": [["ja", "Ja, gibt es", "hinweis"], ["nein", "Nein", null], ["weiss", "Weiß nicht", null]]}, {"key": "bauspar", "label": "Bausparvertrag", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "depot", "label": "Depot, Fonds oder ETF-Sparplan", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "vl", "label": "VL-Vertrag", "hint": "Vertrag für vermögenswirksame Leistungen", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}]}, {"titel": "Vermögenswirksame Leistungen (VWL)", "items": [{"key": "vwl", "label": "Zahlt dein Arbeitgeber VWL?", "hint": "Kurz beim Arbeitgeber oder in der Gehaltsabrechnung nachschauen", "opts": [["ja", "Ja", "hinweis"], ["nein", "Nein", null], ["weiss", "Weiß ich noch nicht", null]]}, {"key": "vwl_betrag", "label": "Wie viel im Monat?", "typ": "text", "placeholder": "z. B. 40 €, falls du es weißt"}]}, {"titel": "Noch zwei kurze Fragen", "items": [{"key": "partner", "label": "Soll ich auch die Verträge deiner Partnerin / deines Partners anschauen?", "opts": [["ja", "Ja, gern", "hinweis"], ["nein", "Nein", null], ["kein", "Kein Partner", null]]}, {"key": "empfehlung", "label": "Kennst du jemanden, für den so ein Check auch gut wäre?", "hint": "Dann sprechen wir im Termin kurz drüber. Namen brauchst du hier nicht einzutragen.", "opts": [["ja", "Ja, mir fällt jemand ein", "hinweis"], ["nein", "Gerade nicht", null]]}, {"key": "sonstiges", "label": "Sonstiges, was dir noch eingefallen ist", "typ": "textarea", "placeholder": "Fragen, weitere Verträge, Wünsche …"}]}];
+const TAGE=['So.','Mo.','Di.','Mi.','Do.','Fr.','Sa.'];
+const code=(location.hash||'').slice(1).toLowerCase();
+const demo=code==='demo';
+const SPEICHER='zdc-'+code;
+let antworten={},daten=null;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function parse(t){const m=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(t||'');return m?new Date(+m[3],+m[2]-1,+m[1]):null}
+function fmt(d){return TAGE[d.getDay()]+' '+('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear()}
+function lokalLesen(){try{return JSON.parse(localStorage.getItem(SPEICHER)||'null')}catch(e){return null}}
+function lokalSchreiben(){try{localStorage.setItem(SPEICHER,JSON.stringify({t:Date.now(),antworten}))}catch(e){}}
+function alleItems(){return ABSCHNITTE.flatMap(a=>a.items)}
+function fehlerSeite(text){document.getElementById('app').innerHTML='<div class="status">'+text+'</div>'}
+
+async function start(){
+  if(!demo&&!API){fehlerSeite('Die Checkliste ist gleich startklar. Bitte probier es in Kürze nochmal.');return}
+  if(!demo&&!/^[a-f0-9]{32}$/.test(code)){fehlerSeite('Dieser Link ist leider nicht vollständig. Am besten den Link aus der Mail nochmal öffnen oder kurz bei mir melden.');return}
+  try{
+    if(demo){daten={ok:true,anrede:'Max',termin:(()=>{const d=new Date();d.setDate(d.getDate()+14);return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear()})(),antworten:{},abgesendet:''}}
+    else{const r=await fetch(API+'?action=get&code='+code);daten=await r.json()}
+  }catch(e){fehlerSeite('Die Checkliste lässt sich gerade nicht laden. Bitte später nochmal probieren.');return}
+  if(!daten||!daten.ok){fehlerSeite('Diesen Link kenne ich leider nicht (mehr). Melde dich kurz bei mir, dann schicke ich dir einen neuen.');return}
+  antworten=Object.assign({},daten.antworten||{});
+  const lokal=lokalLesen();
+  const server=daten.abgesendet?new Date(daten.abgesendet).getTime():0;
+  if(lokal&&lokal.t>server)antworten=Object.assign(antworten,lokal.antworten||{});
+  zeichnen();
+}
+
+function zeichnen(){
+  const d=parse(daten.termin);
+  let h='<div class="kopf"><div><h1>Hallo '+esc(daten.anrede)+',</h1><p class="intro">hier ist deine Checkliste nach unserem Termin. Dauert ca. 3 Minuten: Tipp bei jedem Punkt an, was passt, und schick sie unten ab.</p>'+
+    (d?'<div class="termin">Unser nächster Termin: <b>'+fmt(d)+'</b></div>':'')+'</div><img src="assets/zd-logo.png" alt="Zukunftsdienst"></div>';
+  ABSCHNITTE.forEach((a,ai)=>{
+    h+='<h2><span class="n">'+(ai+1)+'</span>'+esc(a.titel)+'</h2>';
+    a.items.forEach(it=>{
+      const v=antworten[it.key]||'';
+      h+='<div class="karte'+(v?' fertig':'')+'" id="k-'+it.key+'"><b>'+esc(it.label)+'</b>'+(it.hint?'<small>'+esc(it.hint)+'</small>':'');
+      const typ=it.typ||'wahl';
+      if(typ==='wahl')h+='<div class="opts">'+it.opts.map(o=>'<button type="button" class="opt'+(v===o[0]?' an':'')+(o[2]==='luecke'?' luecke':'')+'" data-k="'+it.key+'" data-v="'+o[0]+'">'+esc(o[1])+'</button>').join('')+'</div>';
+      else if(typ==='text')h+='<input type="text" data-t="'+it.key+'" value="'+esc(v)+'" placeholder="'+esc(it.placeholder||'')+'">';
+      else h+='<textarea data-t="'+it.key+'" placeholder="'+esc(it.placeholder||'')+'">'+esc(v)+'</textarea>';
+      h+='</div>';
+    });
+  });
+  h+='<div class="regel"><h3>Deine Unterlagen</h3>Pro Vertrag reichen mir <b>die ersten 3–4 Seiten vom Versicherungsschein</b>: Tarif, Leistung, Beitrag, wer versichert ist. Bei älteren Verträgen bitte auch <b>das aktuellste Beitragsschreiben</b>. AGB und Kleingedrucktes brauchst du nicht zu schicken.<ul><li>in der Kunden-App hochladen</li><li>oder abfotografieren und per WhatsApp oder Mail schicken</li></ul></div>';
+  h+='<div class="meldung" id="meldung"></div>';
+  h+='<p class="fuss">Deine Eingaben bleiben auf diesem Gerät gespeichert, du kannst also jederzeit später weitermachen.<br>Torbjörn Hennies · Zukunftsdienst</p>';
+  document.getElementById('app').innerHTML=h;
+  document.getElementById('leiste').style.display='';
+  if(daten.abgesendet)meldung('ok','Du hast die Checkliste schon abgeschickt. Du kannst noch etwas ändern und erneut absenden.');
+  stand();
+}
+
+function stand(){
+  const items=alleItems().filter(it=>(it.typ||'wahl')==='wahl'),n=items.filter(it=>antworten[it.key]).length;
+  document.getElementById('stand').textContent=n+' von '+items.length+' beantwortet';
+  document.getElementById('balken').style.width=Math.round(100*n/items.length)+'%';
+}
+
+function meldung(art,text){const m=document.getElementById('meldung');m.className='meldung an '+art;m.innerHTML=text}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.opt');if(!b)return;
+  const k=b.dataset.k,v=b.dataset.v;
+  antworten[k]=antworten[k]===v?'':v;
+  b.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.toggle('an',x.dataset.v===antworten[k]));
+  document.getElementById('k-'+k).classList.toggle('fertig',!!antworten[k]);
+  lokalSchreiben();stand();
+});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.t;if(!k)return;antworten[k]=e.target.value;lokalSchreiben()});
+
+document.getElementById('senden').onclick=async function(){
+  const btn=this;btn.disabled=true;btn.textContent='Sendet …';
+  const sauber={};Object.keys(antworten).forEach(k=>{if(antworten[k])sauber[k]=antworten[k]});
+  try{
+    if(!demo){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({code,antworten:sauber})});const j=await r.json();if(!j.ok)throw new Error(j.fehler||'fehler')}
+    daten.abgesendet=new Date().toISOString();lokalSchreiben();
+    meldung('ok','<b>Danke, ist angekommen!</b> Ich bereite alles für unseren Termin vor. Fehlt noch was? Einfach ändern und erneut absenden.');
+  }catch(e){meldung('fehler','Das hat gerade nicht geklappt. Deine Eingaben sind gespeichert, bitte gleich nochmal auf „Absenden“ tippen.')}
+  btn.disabled=false;btn.textContent='Absenden';
+  document.getElementById('meldung').scrollIntoView({behavior:'smooth',block:'center'});
+};
+start();
+</script></body></html>
