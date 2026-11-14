@@ -19,6 +19,8 @@ h2{font-size:19px;margin:28px 0 10px;display:flex;align-items:center;gap:10px}
 h2 .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-size:14px;display:grid;place-items:center}
 .karte{background:#fff;border:1.5px solid #cfd6e2;border-radius:16px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
 .karte.fertig{border-color:var(--slate)}
+.karte.fehlt{border-color:var(--rot);background:#fdf3f3}
+.pflicht{color:var(--rot);font-weight:700;margin-left:4px}
 .karte b{display:block;font-size:16px}
 .karte small{display:block;color:var(--slate);font-size:13.5px;margin-top:2px}
 .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:7px;margin-top:10px}
@@ -48,7 +50,7 @@ textarea{min-height:90px;resize:vertical}
 <div class="leiste" id="leiste" style="display:none"><div class="in"><div class="stand"><span id="stand"></span><div class="balken"><i id="balken"></i></div></div><button class="senden" id="senden">Absenden</button></div></div>
 <script>
 const API="https://script.google.com/macros/s/AKfycbzSGQ1Ez19UCiFoVSW2pEB2EjFb2JFg5NmSomXBeYP-dfHeLbdpLtxnqs-vAJle1xBByw/exec";
-const ABSCHNITTE=[{"titel": "Haus, Auto, Haftung", "items": [{"key": "haftpflicht", "label": "Privathaftpflicht", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "hausrat", "label": "Hausrat", "hint": "inkl. Fahrrad / E-Bike", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "wohngebaeude", "label": "Wohngebäude", "hint": "nur wenn dir ein Haus gehört", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["kein", "Kein Eigentum", null]]}, {"key": "rechtsschutz", "label": "Rechtsschutz", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "kfz", "label": "KFZ", "hint": "Auto, Motorrad, Roller", "opts": [["hab", "Hab ich", "hat"], ["kein", "Kein Fahrzeug", null]]}, {"key": "haustier", "label": "Haustier-Versicherung", "hint": "Tierhalterhaftpflicht, Tier-Kranken- oder OP-Versicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["kein", "Kein Haustier", null]]}, {"key": "strom", "label": "Strom & Gas", "hint": "Wir schauen, ob dein Tarif günstiger geht", "opts": [["ja", "Gern mitprüfen", "hinweis"], ["nein", "Nein danke", null]]}]}, {"titel": "Gesundheit und Arbeitskraft", "items": [{"key": "krankenkasse", "label": "Bei welcher Krankenkasse bist du?", "typ": "text", "placeholder": "z. B. TK, AOK, Barmer"}, {"key": "bu", "label": "Berufsunfähigkeit / Grundfähigkeit", "hint": "bei Beamten: Dienstunfähigkeit", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "unfall", "label": "Unfallversicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "risikoleben", "label": "Risikolebensversicherung", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "zusatz", "label": "Krankenzusatz", "hint": "z. B. Zahn, Krankenhaus, Heilpraktiker", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}]}, {"titel": "Vorsorge und Vermögen", "items": [{"key": "altvertraege", "label": "Alte Verträge zur Altersvorsorge, die wir noch nicht kennen", "hint": "Lebensversicherung, Riester, Rürup, Betriebsrente (bAV)", "opts": [["ja", "Ja, gibt es", "hinweis"], ["nein", "Nein", null], ["weiss", "Weiß nicht", null]]}, {"key": "bauspar", "label": "Bausparvertrag", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "depot", "label": "Depot, Fonds oder ETF-Sparplan", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}, {"key": "vl", "label": "VL-Vertrag", "hint": "Vertrag für vermögenswirksame Leistungen", "opts": [["hab", "Hab ich", "hat"], ["nein", "Hab ich nicht", "luecke"], ["weiss", "Weiß nicht", null]]}]}, {"titel": "Vermögenswirksame Leistungen (VWL)", "items": [{"key": "vwl", "label": "Zahlt dein Arbeitgeber VWL?", "hint": "Kurz beim Arbeitgeber oder in der Gehaltsabrechnung nachschauen", "opts": [["ja", "Ja", "hinweis"], ["nein", "Nein", null], ["weiss", "Weiß ich noch nicht", null]]}, {"key": "vwl_betrag", "label": "Wie viel im Monat?", "typ": "text", "placeholder": "z. B. 40 €, falls du es weißt"}]}, {"titel": "Noch zwei kurze Fragen", "items": [{"key": "partner", "label": "Soll ich auch die Verträge deiner Partnerin / deines Partners anschauen?", "opts": [["ja", "Ja, gern", "hinweis"], ["nein", "Nein", null], ["kein", "Kein Partner", null]]}, {"key": "empfehlung", "label": "Kennst du jemanden, für den so ein Check auch gut wäre?", "hint": "Dann sprechen wir im Termin kurz drüber. Namen brauchst du hier nicht einzutragen.", "opts": [["ja", "Ja, mir fällt jemand ein", "hinweis"], ["nein", "Gerade nicht", null]]}, {"key": "sonstiges", "label": "Sonstiges, was dir noch eingefallen ist", "typ": "textarea", "placeholder": "Fragen, weitere Verträge, Wünsche …"}]}];
+const ABSCHNITTE=[{"titel": "Haus, Auto, Haftung", "items": [{"key": "haftpflicht", "label": "Privathaftpflicht", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "hausrat", "label": "Hausrat", "hint": "inkl. Fahrrad / E-Bike", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "wohngebaeude", "label": "Wohngebäude", "hint": "Trifft nicht zu, wenn dir kein Haus gehört", "opts": [["hab", "Habe ich", "hat"], ["kein", "Trifft nicht zu", null]]}, {"key": "rechtsschutz", "label": "Rechtsschutz", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "kfz", "label": "KFZ", "hint": "Auto, Motorrad, Roller. Trifft nicht zu, wenn du kein Fahrzeug hast", "opts": [["hab", "Habe ich", "hat"], ["kein", "Trifft nicht zu", null]]}, {"key": "haustier", "label": "Haustier-Versicherung", "hint": "Tierhalterhaftpflicht, Tier-Kranken- oder OP-Versicherung. Trifft nicht zu, wenn du kein Haustier hast", "opts": [["hab", "Habe ich", "hat"], ["kein", "Trifft nicht zu", null]]}, {"key": "strom", "label": "Strom & Gas", "hint": "Letzte Jahresabrechnung oder Vertragsbestätigung, wir schauen, ob es günstiger geht", "opts": [["ja", "Unterlagen schicke ich", "hinweis"], ["vermieter", "Läuft über den Vermieter", null]]}]}, {"titel": "Gesundheit und Arbeitskraft", "items": [{"key": "krankenkasse", "label": "Bei welcher Krankenkasse bist du?", "typ": "text", "placeholder": "z. B. TK, AOK, Barmer"}, {"key": "bu", "label": "Berufsunfähigkeit / Grundfähigkeit", "hint": "bei Beamten: Dienstunfähigkeit", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "unfall", "label": "Unfallversicherung", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "risikoleben", "label": "Risikolebensversicherung", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "zusatz", "label": "Krankenzusatz", "hint": "z. B. Zahn, Krankenhaus, Heilpraktiker", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}]}, {"titel": "Vorsorge und Vermögen", "items": [{"key": "altvertraege", "label": "Alte Verträge zur Altersvorsorge, die wir noch nicht kennen", "hint": "Lebensversicherung, Riester, Rürup, Betriebsrente (bAV)", "opts": [["ja", "Ja, gibt es", "hinweis"], ["nein", "Nein", null]]}, {"key": "bauspar", "label": "Bausparvertrag", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "depot", "label": "Depot, Fonds oder ETF-Sparplan", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}, {"key": "vl", "label": "VL-Vertrag", "hint": "Vertrag für vermögenswirksame Leistungen", "opts": [["hab", "Habe ich", "hat"], ["nein", "Habe ich nicht", "luecke"]]}]}, {"titel": "Vermögenswirksame Leistungen (VWL)", "items": [{"key": "vwl", "label": "Zahlt dein Arbeitgeber VWL?", "hint": "Kurz beim Arbeitgeber oder in der Gehaltsabrechnung nachschauen", "opts": [["ja", "Ja", "hinweis"], ["nein", "Nein", null], ["weiss", "Weiß ich noch nicht", null]]}, {"key": "vwl_betrag", "label": "Wie viel im Monat?", "typ": "text", "optional": true, "placeholder": "z. B. 40 €, falls du es weißt"}]}, {"titel": "Noch zwei kurze Fragen", "items": [{"key": "partner", "label": "Soll ich auch die Verträge deiner Partnerin / deines Partners anschauen?", "opts": [["ja", "Ja, gern", "hinweis"], ["nein", "Nein / kein Partner", null]]}, {"key": "empfehlung", "label": "Kennst du jemanden, für den so ein Check auch gut wäre?", "hint": "Dann sprechen wir im Termin kurz drüber. Namen brauchst du hier nicht einzutragen.", "opts": [["ja", "Ja, mir fällt jemand ein", "hinweis"], ["nein", "Gerade nicht", null]]}, {"key": "sonstiges", "label": "Sonstiges, was dir noch eingefallen ist", "typ": "textarea", "optional": true, "placeholder": "Fragen, weitere Verträge, Wünsche …"}]}];
 const TAGE=['So.','Mo.','Di.','Mi.','Do.','Fr.','Sa.'];
 const code=(location.hash||'').slice(1).toLowerCase();
 const demo=code==='demo';
@@ -61,6 +63,8 @@ function fmt(d){return TAGE[d.getDay()]+' '+('0'+d.getDate()).slice(-2)+'.'+('0'
 function lokalLesen(){try{return JSON.parse(localStorage.getItem(SPEICHER)||'null')}catch(e){return null}}
 function lokalSchreiben(){try{localStorage.setItem(SPEICHER,JSON.stringify({t:Date.now(),antworten}))}catch(e){}}
 function alleItems(){return ABSCHNITTE.flatMap(a=>a.items)}
+function pflichtItems(){return alleItems().filter(it=>!it.optional)}
+function offene(){return pflichtItems().filter(it=>!String(antworten[it.key]||'').trim())}
 function fehlerSeite(text){document.getElementById('app').innerHTML='<div class="status">'+text+'</div>'}
 
 async function start(){
@@ -80,13 +84,13 @@ async function start(){
 
 function zeichnen(){
   const d=parse(daten.termin);
-  let h='<div class="kopf"><div><h1>Hallo '+esc(daten.anrede)+',</h1><p class="intro">hier ist deine Checkliste nach unserem Termin. Dauert ca. 3 Minuten: Tipp bei jedem Punkt an, was passt, und schick sie unten ab.</p>'+
+  let h='<div class="kopf"><div><h1>Hallo '+esc(daten.anrede)+',</h1><p class="intro">hier ist deine Checkliste nach unserem Termin. Dauert ca. 3 Minuten: Bitte beantworte jeden Punkt. Was du nicht hast, beantwortest du einfach mit „Habe ich nicht“.</p>'+
     (d?'<div class="termin">Unser nächster Termin: <b>'+fmt(d)+'</b></div>':'')+'</div><img src="assets/zd-logo.png" alt="Zukunftsdienst"></div>';
   ABSCHNITTE.forEach((a,ai)=>{
     h+='<h2><span class="n">'+(ai+1)+'</span>'+esc(a.titel)+'</h2>';
     a.items.forEach(it=>{
       const v=antworten[it.key]||'';
-      h+='<div class="karte'+(v?' fertig':'')+'" id="k-'+it.key+'"><b>'+esc(it.label)+'</b>'+(it.hint?'<small>'+esc(it.hint)+'</small>':'');
+      h+='<div class="karte'+(v?' fertig':'')+'" id="k-'+it.key+'"><b>'+esc(it.label)+(it.optional?'':'<span class="pflicht">*</span>')+'</b>'+(it.hint?'<small>'+esc(it.hint)+'</small>':'');
       const typ=it.typ||'wahl';
       if(typ==='wahl')h+='<div class="opts">'+it.opts.map(o=>'<button type="button" class="opt'+(v===o[0]?' an':'')+(o[2]==='luecke'?' luecke':'')+'" data-k="'+it.key+'" data-v="'+o[0]+'">'+esc(o[1])+'</button>').join('')+'</div>';
       else if(typ==='text')h+='<input type="text" data-t="'+it.key+'" value="'+esc(v)+'" placeholder="'+esc(it.placeholder||'')+'">';
@@ -104,7 +108,7 @@ function zeichnen(){
 }
 
 function stand(){
-  const items=alleItems().filter(it=>(it.typ||'wahl')==='wahl'),n=items.filter(it=>antworten[it.key]).length;
+  const items=pflichtItems(),n=items.length-offene().length;
   document.getElementById('stand').textContent=n+' von '+items.length+' beantwortet';
   document.getElementById('balken').style.width=Math.round(100*n/items.length)+'%';
 }
@@ -117,11 +121,19 @@ document.addEventListener('click',e=>{
   antworten[k]=antworten[k]===v?'':v;
   b.parentNode.querySelectorAll('.opt').forEach(x=>x.classList.toggle('an',x.dataset.v===antworten[k]));
   document.getElementById('k-'+k).classList.toggle('fertig',!!antworten[k]);
+  b.closest('.karte').classList.remove('fehlt');
   lokalSchreiben();stand();
 });
-document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.t;if(!k)return;antworten[k]=e.target.value;lokalSchreiben()});
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.t;if(!k)return;antworten[k]=e.target.value;lokalSchreiben();const c=document.getElementById('k-'+k);if(c){c.classList.toggle('fertig',!!e.target.value.trim());if(e.target.value.trim())c.classList.remove('fehlt')}stand()});
 
 document.getElementById('senden').onclick=async function(){
+  const fehlt=offene();
+  document.querySelectorAll('.karte.fehlt').forEach(c=>c.classList.remove('fehlt'));
+  if(fehlt.length){
+    fehlt.forEach(it=>document.getElementById('k-'+it.key).classList.add('fehlt'));
+    meldung('fehler','Bitte noch beantworten: <b>'+fehlt.length+(fehlt.length===1?' Punkt':' Punkte')+'</b> (rot markiert). Was du nicht hast, einfach mit „Habe ich nicht“ beantworten.');
+    document.getElementById('k-'+fehlt[0].key).scrollIntoView({behavior:'smooth',block:'center'});
+    return}
   const btn=this;btn.disabled=true;btn.textContent='Sendet …';
   const sauber={};Object.keys(antworten).forEach(k=>{if(antworten[k])sauber[k]=antworten[k]});
   try{
